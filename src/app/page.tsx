@@ -1,103 +1,160 @@
-import Image from "next/image";
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import { useRef, useEffect, useState } from 'react';
+import Image from 'next/image';
+import { IGift } from '@/models/Gift';
+import { pickNextGift } from '@/utils/giftUtils';
+import BigGift from '@/components/BigGift';
+import GiftSummaryGrid from '@/components/GiftSummaryGrid';
+import styles from './page.module.css';
+
+async function fetchGifts(): Promise<IGift[]> {
+  const response = await fetch('/api/gifts');
+  if (!response.ok) {
+    throw new Error('Failed to fetch gifts');
+  }
+  return response.json();
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const bigGiftRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const [selectedGift, setSelectedGift] = useState<IGift | null>(null);
+  const [isOpeningGift, setIsOpeningGift] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const {
+    data: gifts = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['gifts'],
+    queryFn: fetchGifts,
+  });
+
+  // Sync selectedGift with updated query data when gifts change
+  useEffect(() => {
+    if (selectedGift && gifts.length > 0) {
+      const updatedGift = gifts.find((g) => g._id.toString() === selectedGift._id.toString());
+      if (updatedGift) {
+        // Always update with the latest data to keep the state in sync
+        setSelectedGift(updatedGift);
+      }
+    }
+  }, [gifts, selectedGift]);
+
+  // Don't change the current gift while a gift is being opened to prevent flashing
+  const currentGift =
+    isOpeningGift && selectedGift ? selectedGift : selectedGift || pickNextGift(gifts);
+
+  const handleGiftClick = (gift: IGift) => {
+    setSelectedGift(gift);
+    if (bigGiftRef.current) {
+      bigGiftRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
+
+  const handleGiftOpened = (openedGift: IGift) => {
+    // When a gift is opened, keep it selected so it stays visible
+    // Use the returned gift from the API which should have the correct opened state
+    setSelectedGift(openedGift);
+    setIsOpeningGift(false);
+  };
+
+  const handleGiftOpenStart = () => {
+    setIsOpeningGift(true);
+  };
+
+  if (!isMounted || isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingContent}>
+          <div className={styles.spinningGift}>
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src='https://i.ibb.co/Z6fxpK0W/pngtree-blue-gift-box-with-yellow-ribbon-packaging-png-image-16954464.webp'
+              alt='Loading gifts'
+              fill
+              className={styles.spinningGiftImage}
+              priority
+              sizes='128px'
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <p className={styles.loadingText}>Chargement de tes cadeaux...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <div className={styles.errorContent}>
+          <p className={styles.errorText}>Échec du chargement des cadeaux</p>
+          <button onClick={() => window.location.reload()} className={styles.errorButton}>
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.container}>
+      <main className={styles.main}>
+        {/* Header */}
+        <header className={styles.header}>
+          {currentGift ? (
+            <>
+              <h1 className={styles.title}>Joyeux 30 ans</h1>
+              <h1 className={styles.subtitle}>{currentGift.love_surname}</h1>
+            </>
+          ) : (
+            <h1 className={styles.title}>Joyeux 30 ans ❤ </h1>
+          )}
+        </header>
+
+        {/* Current Gift */}
+        {currentGift && (
+          <section ref={bigGiftRef}>
+            <BigGift
+              gift={currentGift}
+              onGiftOpened={handleGiftOpened}
+              onGiftOpenStart={handleGiftOpenStart}
+              isLoading={isOpeningGift}
+            />
+          </section>
+        )}
+
+        {/* All gifts completed */}
+        {!currentGift && gifts.length > 0 && (
+          <section className={styles.completedSection}>
+            <h2 className={styles.completedTitle}>🎉 30 cadeaux ouverts 🎉</h2>
+          </section>
+        )}
+
+        {/* Gift Summary Grid */}
+        {gifts.length > 0 && (
+          <section>
+            <GiftSummaryGrid gifts={gifts} onGiftClick={handleGiftClick} />
+          </section>
+        )}
+
+        {/* No gifts message */}
+        {gifts.length === 0 && (
+          <section className={styles.noGiftsSection}>
+            <p className={styles.noGiftsText}>
+              Petite erreur : La base de données ne contient aucun cadeau.
+            </p>
+          </section>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }

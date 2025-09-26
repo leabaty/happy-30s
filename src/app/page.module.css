@@ -1,0 +1,138 @@
+/* Main page styles */
+.container {
+  min-height: 100vh;
+}
+
+.main {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-family: 'CodyStar', sans-serif;
+  color: #fff;
+}
+
+.subtitle {
+  font-size: 1.8rem;
+  font-family: 'CodyStar', sans-serif;
+  color: #fff;
+}
+
+.completedSection {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+}
+
+.completedTitle {
+  font-size: 1.5rem;
+  color: #b7b7b7;
+  text-align: center;
+}
+
+.noGiftsSection {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.noGiftsText {
+  color: #4b5563; /* text-gray-600 */
+}
+
+.selectedGiftIndicator {
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.selectedGiftIndicator p {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Loading styles */
+.loadingContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingContent {
+  text-align: center;
+}
+
+.spinningGift {
+  position: relative;
+  width: 8rem;
+  height: 8rem;
+  margin: 0 auto 1rem auto;
+  animation: spin 2s linear infinite;
+}
+
+.spinningGiftImage {
+  object-fit: contain;
+}
+
+.loadingText {
+  color: #ffffff;
+}
+
+/* Error styles */
+.errorContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorContent {
+  text-align: center;
+}
+
+.errorText {
+  color: #dc2626; /* text-red-600 */
+  margin-bottom: 1rem;
+}
+
+.errorButton {
+  padding: 0.5rem 1rem;
+  background-color: #ec4899; /* bg-pink-500 */
+  color: white;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.errorButton:hover {
+  background-color: #db2777; /* hover:bg-pink-600 */
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Media queries for responsive design */
+@media (min-width: 768px) {
+  .title {
+    font-size: 2.25rem; /* md:text-4xl */
+  }
+}
