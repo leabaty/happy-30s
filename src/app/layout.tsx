@@ -26,8 +26,13 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Happy 30s - Birthday Advent',
-  description: 'A special birthday advent calendar',
+  title: 'Happy 30s babe ❤️',
+  description: '30 petites et moyennes surprises à ouvrir au fil de tes envies',
+  icons: {
+    icon: '/favicon/favicon.ico',
+    shortcut: '/favicon/favicon.ico',
+    apple: '/favicon/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-# Happy 30s - Birthday Advent Calendar
+# Happy 30s - Birthday Advent Calendar Style
 
 A beautiful, mobile-first birthday advent calendar built with Next.js, TypeScript, and MongoDB. Features interactive gift opening with smooth animations, responsive design, and real-time updates.
 
