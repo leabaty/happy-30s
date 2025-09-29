@@ -341,9 +341,21 @@ const sampleGifts = [
   },
 ];
 
+// --- shuffle util ---
+interface ArrayElement {
+  [key: string]: string | number | boolean;
+}
+
+function shuffle<T extends ArrayElement>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 async function seedDatabase() {
   try {
-    // Dynamically import the modules after environment is loaded
     const { default: dbConnect } = await import('@/lib/mongodb');
     const { default: Gift } = await import('@/models/Gift');
 
@@ -352,15 +364,33 @@ async function seedDatabase() {
     // Clear existing gifts
     await Gift.deleteMany({});
 
-    // Insert sample gifts
-    await Gift.insertMany(sampleGifts);
+    // Shuffle based on --shuffle flag
+    const shouldShuffle = process.argv.includes('--shuffle');
+    let giftsToInsert = [...sampleGifts];
 
-    console.log('Database seeded successfully!');
-    console.log(`Inserted ${sampleGifts.length} gifts`);
+    if (shouldShuffle) {
+      giftsToInsert = shuffle(giftsToInsert).map((gift, index) => ({
+        ...gift,
+        order: index + 1,
+      }));
+      console.log('⚡ Gifts shuffled!');
+    } else {
+      giftsToInsert = giftsToInsert.map((gift, index) => ({
+        ...gift,
+        order: index + 1,
+      }));
+      console.log('📋 Gifts kept in original order.');
+    }
+
+    // Insert sample gifts
+    await Gift.insertMany(giftsToInsert);
+
+    console.log('✅ Database seeded successfully!');
+    console.log(`Inserted ${giftsToInsert.length} gifts`);
 
     process.exit(0);
   } catch (error) {
-    console.error('Error seeding database:', error);
+    console.error('❌ Error seeding database:', error);
     process.exit(1);
   }
 }
