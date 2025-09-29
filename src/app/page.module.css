@@ -26,13 +26,13 @@
   color: #fff;
 }
 
-.completedSection {
+.section {
   text-align: center;
   margin-bottom: 2rem;
   padding: 1.5rem;
 }
 
-.completedTitle {
+.text {
   font-size: 1.5rem;
   color: #b7b7b7;
   text-align: center;
@@ -64,10 +64,16 @@
 
 /* Loading styles */
 .loadingContainer {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #000;
+  z-index: 50;
 }
 
 .loadingContent {

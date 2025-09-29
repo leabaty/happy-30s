@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { IGift } from '@/models/Gift';
-import { pickNextGift } from '@/utils/giftUtils';
 import BigGift from '@/components/BigGift';
 import GiftSummaryGrid from '@/components/GiftSummaryGrid';
 import styles from './page.module.css';
@@ -48,17 +47,26 @@ export default function Home() {
   }, [gifts, selectedGift]);
 
   // Don't change the current gift while a gift is being opened to prevent flashing
-  const currentGift =
-    isOpeningGift && selectedGift ? selectedGift : selectedGift || pickNextGift(gifts);
+  // On first login (no gift selected), show no gift until user selects one
+  const currentGift = isOpeningGift && selectedGift ? selectedGift : selectedGift;
+
+  // Check if ALL gifts have been opened
+  const allGiftsOpened = gifts.length > 0 && gifts.every((gift) => gift.opened);
+
+  // Show default title when: no gift selected (regardless of opened status)
+  const showDefaultTitle = !selectedGift;
+
+  // Show welcome message when: no gift selected AND not all gifts are opened
+  const showWelcomeMessage = !selectedGift && !allGiftsOpened;
 
   const handleGiftClick = (gift: IGift) => {
     setSelectedGift(gift);
-    if (bigGiftRef.current) {
-      bigGiftRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
+
+    // Scroll to top to show the selected gift
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   };
 
   const handleGiftOpened = (openedGift: IGift) => {
@@ -110,7 +118,9 @@ export default function Home() {
       <main className={styles.main}>
         {/* Header */}
         <header className={styles.header}>
-          {currentGift ? (
+          {showDefaultTitle ? (
+            <h1 className={styles.title}>Joyeux 30 ans ❤ </h1>
+          ) : currentGift ? (
             <>
               <h1 className={styles.title}>Joyeux 30 ans</h1>
               <h1 className={styles.subtitle}>{currentGift.love_surname}</h1>
@@ -132,12 +142,12 @@ export default function Home() {
           </section>
         )}
 
-        {/* All gifts completed */}
-        {!currentGift && gifts.length > 0 && (
-          <section className={styles.completedSection}>
-            <h2 className={styles.completedTitle}>🎉 30 cadeaux ouverts 🎉</h2>
-          </section>
-        )}
+        <section className={styles.section}>
+          {showWelcomeMessage && gifts.length > 0 && (
+            <p className={styles.text}>Quel cadeau sera ta prochaine surprise ? </p>
+          )}
+          {allGiftsOpened && <h2 className={styles.text}>🎉 30 cadeaux ouverts 🎉</h2>}
+        </section>
 
         {/* Gift Summary Grid */}
         {gifts.length > 0 && (
